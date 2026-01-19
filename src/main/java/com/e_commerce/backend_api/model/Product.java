@@ -10,6 +10,7 @@ public class Product {
 
     @Id
     private String id;
+    private String description;
     private String name;
     private double price;
     private int stock;
