@@ -1,8 +1,10 @@
 package com.e_commerce.backend_api.model;
 
+import lombok.Data;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+@Data
 @Document(collection = "cart_items")
 public class CartItem {
 

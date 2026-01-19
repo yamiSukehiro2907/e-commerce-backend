@@ -22,4 +22,8 @@ public class ProductRepository {
         return mongoTemplate.findAll(Product.class);
     }
 
+    public Product findById(String productId) {
+        return mongoTemplate.findById(productId, Product.class);
+    }
+
 }

@@ -11,13 +11,13 @@ import org.springframework.web.bind.annotation.*;
 import java.util.Optional;
 
 @RestController
-@RequestMapping("/api")
+@RequestMapping("/api/products")
 @RequiredArgsConstructor
 public class ProductController {
 
     private final ProductService productService;
 
-    @PostMapping("/products")
+    @PostMapping
     public ResponseEntity<?> createProduct(@RequestBody ProductRequest productRequest) {
         try {
             Optional<Product> product = productService.createProduct(productRequest);
@@ -28,7 +28,7 @@ public class ProductController {
         }
     }
 
-    @GetMapping("/products")
+    @GetMapping
     public ResponseEntity<?> getAllProducts() {
         return new ResponseEntity<>(productService.getAllProducts(), HttpStatus.OK);
     }
