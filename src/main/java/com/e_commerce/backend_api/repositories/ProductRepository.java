@@ -26,4 +26,7 @@ public class ProductRepository {
         return mongoTemplate.findById(productId, Product.class);
     }
 
+    public Product save(Product product) {
+        return mongoTemplate.save(product);
+    }
 }

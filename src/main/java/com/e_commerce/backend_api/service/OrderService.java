@@ -7,12 +7,14 @@ import com.e_commerce.backend_api.repositories.ProductRepository;
 import com.e_commerce.backend_api.repositories.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class OrderService {
 
     private final CartRepository cartRepository;
@@ -39,6 +41,8 @@ public class OrderService {
             if (product == null) throw new RuntimeException("Product not found: " + cartItem.getProductId());
             if (product.getStock() < cartItem.getQuantity())
                 throw new RuntimeException("Insufficient stock for product: " + product.getName());
+            product.setStock(product.getStock() - cartItem.getQuantity());
+            productRepository.save(product);
             double amount = product.getPrice() * cartItem.getQuantity();
             totalAmount += amount;
             orderItems.add(new OrderItemDto(

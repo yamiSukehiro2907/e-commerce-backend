@@ -28,6 +28,7 @@ public class CartService {
         if (user == null) return null;
         Product product = productRepository.findById(itemRequest.productId());
         if (product == null) return null;
+        if (product.getStock() < itemRequest.quantity()) throw new RuntimeException("Item not enough");
         CartItem cartItem = new CartItem();
         cartItem.setUserId(itemRequest.userId());
         cartItem.setProductId(itemRequest.productId());
