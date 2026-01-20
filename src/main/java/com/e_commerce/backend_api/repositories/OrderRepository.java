@@ -32,10 +32,4 @@ public class OrderRepository {
     public Order save(Order order) {
         return mongoTemplate.save(order);
     }
-
-    public Order findByPaymentId(String paymentId) {
-        Query query = new Query();
-        query.addCriteria(Criteria.where("paymentId").is(paymentId));
-        return mongoTemplate.findOne(query, Order.class);
-    }
 }
