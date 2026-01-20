@@ -46,4 +46,10 @@ public class CartService {
             return new CartItemDto(cartItem.getId(), cartItem.getProductId(), cartItem.getQuantity(), productDto);
         }).toList().stream().filter(Objects::nonNull).toList();
     }
+
+    public void deleteCartItems(String userId) {
+        User user = userRepository.findById(userId);
+        if (user == null) return;
+        cartRepository.emptyCart(userId);
+    }
 }

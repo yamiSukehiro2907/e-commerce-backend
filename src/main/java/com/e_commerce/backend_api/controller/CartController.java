@@ -8,6 +8,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
+
 @RestController
 @RequestMapping("/api/cart")
 @RequiredArgsConstructor
@@ -29,6 +31,12 @@ public class CartController {
 
     @GetMapping("/{userId}")
     public ResponseEntity<?> getCartItems(@PathVariable String userId) {
-        return new ResponseEntity<>(cartService.findItemsInCart(userId) , HttpStatus.OK);
+        return new ResponseEntity<>(cartService.findItemsInCart(userId), HttpStatus.OK);
+    }
+
+    @DeleteMapping("/{userId}")
+    public ResponseEntity<?> deleteCartItems(@PathVariable String userId) {
+        cartService.deleteCartItems(userId);
+        return new ResponseEntity<>(Map.of("message", "Cart cleared successfully"), HttpStatus.OK);
     }
 }

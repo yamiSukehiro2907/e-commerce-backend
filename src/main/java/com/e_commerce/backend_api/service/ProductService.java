@@ -20,7 +20,7 @@ public class ProductService {
         product.setDescription(productRequest.description());
         product.setName(productRequest.name());
         product.setPrice(productRequest.price());
-        product.setPrice(productRequest.price());
+        product.setStock(productRequest.stock());
         return productRepository.create(product);
     }
 

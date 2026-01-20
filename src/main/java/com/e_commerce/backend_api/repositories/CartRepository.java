@@ -24,4 +24,9 @@ public class CartRepository {
         query.addCriteria(Criteria.where("userId").is(userId));
         return mongoTemplate.find(query, CartItem.class);
     }
+
+    public void emptyCart(String userId) {
+        Query query = new Query(Criteria.where("userId").is(userId));
+        mongoTemplate.remove(query, CartItem.class);
+    }
 }
