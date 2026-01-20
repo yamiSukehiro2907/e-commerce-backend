@@ -1,6 +1,7 @@
 package com.e_commerce.backend_api.model;
 
 import lombok.Data;
+import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.LocalDateTime;
@@ -9,7 +10,8 @@ import java.time.LocalDateTime;
 @Document(collection = "payments")
 public class Payment {
 
-    private String id;
+    @Id
+    private String paymentId;
 
     private String orderId;
 
@@ -17,7 +19,7 @@ public class Payment {
 
     private String status;
 
-    private String paymentId;
+    private String transactionId;
 
     private LocalDateTime createdAt;
 }

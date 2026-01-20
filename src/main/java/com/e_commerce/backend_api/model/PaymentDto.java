@@ -4,6 +4,7 @@ public record PaymentDto(
         String paymentId,
         String orderId,
         double amount,
-        String status
+        String status,
+        String transactionId
 ) {
 }

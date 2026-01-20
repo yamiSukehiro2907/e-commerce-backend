@@ -5,6 +5,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
+
 @Repository
 @RequiredArgsConstructor
 public class PaymentRepository {
@@ -13,6 +15,18 @@ public class PaymentRepository {
 
     public Payment createPayment(Payment payment) {
         return mongoTemplate.insert(payment);
+    }
+
+    public Payment findById(String id) {
+        return  mongoTemplate.findById(id, Payment.class);
+    }
+
+    public Payment save(Payment payment) {
+        return mongoTemplate.save(payment);
+    }
+
+    public List<Payment> findAll(){
+        return  mongoTemplate.findAll(Payment.class);
     }
 
 }
