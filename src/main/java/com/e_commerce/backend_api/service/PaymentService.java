@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
@@ -27,6 +28,8 @@ public class PaymentService {
     public ResponseEntity<?> createPayment(PaymentRequest paymentRequest) {
         Order order = orderRepository.findById(paymentRequest.orderId());
         if (order == null) return new ResponseEntity<>(Map.of("message", "Order not found!"), HttpStatus.NOT_FOUND);
+        if (!Objects.equals(order.getStatus(), "CREATED"))
+            return new ResponseEntity<>(Map.of("message", "Order not available for payment!"), HttpStatus.NOT_FOUND);
         Payment payment = new Payment();
         payment.setOrderId(order.getId());
         payment.setAmount(paymentRequest.amount());
@@ -39,10 +42,15 @@ public class PaymentService {
     public ResponseEntity<?> processPayment(String paymentId) {
         Payment payment = paymentRepository.findById(paymentId);
         if (payment == null) return new ResponseEntity<>(Map.of("message", "Payment not found!"), HttpStatus.NOT_FOUND);
+        if (!payment.getStatus().equals("PENDING"))
+            return new ResponseEntity<>(Map.of("message", "Payment not available for completion!"), HttpStatus.NOT_FOUND);
         WebHookResponse webHookResponse = mockService.updatePaymentStatus();
         payment.setStatus(webHookResponse.status());
         payment.setTransactionId(webHookResponse.transactionId());
         payment = paymentRepository.save(payment);
+        Order order = orderRepository.findByPaymentId(payment.getPaymentId());
+        order.setStatus("SHIPPED");
+        orderRepository.save(order);
         PaymentDto dto = new PaymentDto(payment.getPaymentId(), payment.getOrderId(), payment.getAmount(), payment.getStatus(), payment.getTransactionId());
         return new ResponseEntity<>(dto, HttpStatus.OK);
     }

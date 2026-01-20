@@ -92,4 +92,21 @@ public class OrderService {
                         new OrderItemDto(orderItem.getProductId(), orderItem.getQuantity(), orderItem.getPrice()))
                 .toList();
     }
+
+    public ResponseEntity<?> cancelOrder(String orderId) {
+        Order order = orderRepository.findById(orderId);
+        if (order == null) return new ResponseEntity<>(Map.of("message", "Order not found!"), HttpStatus.NOT_FOUND);
+        if (Objects.equals(order.getStatus(), "PAID"))
+            return new ResponseEntity<>(Map.of("message", "Order already shipped!"), HttpStatus.BAD_REQUEST);
+        List<OrderItem> orderItems = orderItemRepository.findByOrderId(orderId);
+        orderItems.forEach(orderItem -> {
+            String productId = orderItem.getProductId();
+            Product product = productRepository.findById(productId);
+            product.setStock(product.getStock() + orderItem.getQuantity());
+            productRepository.save(product);
+        });
+        order.setStatus("CANCELLED");
+        orderRepository.save(order);
+        return new ResponseEntity<>(Map.of("message", "Order cancelled successfully!"), HttpStatus.OK);
+    }
 }

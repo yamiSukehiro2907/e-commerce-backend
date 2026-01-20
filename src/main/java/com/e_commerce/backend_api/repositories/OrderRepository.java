@@ -28,4 +28,14 @@ public class OrderRepository {
         query.addCriteria(Criteria.where("userId").is(userId));
         return mongoTemplate.find(query, Order.class);
     }
+
+    public Order save(Order order) {
+        return mongoTemplate.save(order);
+    }
+
+    public Order findByPaymentId(String paymentId) {
+        Query query = new Query();
+        query.addCriteria(Criteria.where("paymentId").is(paymentId));
+        return mongoTemplate.findOne(query, Order.class);
+    }
 }

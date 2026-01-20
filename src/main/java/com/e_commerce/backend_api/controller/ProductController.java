@@ -32,4 +32,9 @@ public class ProductController {
     public ResponseEntity<?> getAllProducts() {
         return new ResponseEntity<>(productService.getAllProducts(), HttpStatus.OK);
     }
+
+    @GetMapping("/search")
+    public ResponseEntity<?> getProductsByName(@RequestParam String q) {
+        return new ResponseEntity<>(productService.getProductsByName(q) , HttpStatus.OK);
+    }
 }

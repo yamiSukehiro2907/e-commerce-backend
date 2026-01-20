@@ -27,4 +27,8 @@ public class ProductService {
     public List<Product> getAllProducts() {
         return productRepository.getAllProducts();
     }
+
+    public List<Product> getProductsByName(String name) {
+        return productRepository.findByName(name);
+    }
 }

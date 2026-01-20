@@ -1,6 +1,5 @@
 package com.e_commerce.backend_api.controller;
 
-import com.e_commerce.backend_api.dtos.OrderRequest;
 import com.e_commerce.backend_api.service.OrderService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -13,18 +12,22 @@ import org.springframework.web.bind.annotation.*;
 public class OrderController {
     private final OrderService orderService;
 
-    @GetMapping
-    public ResponseEntity<?> getOrders(@RequestBody OrderRequest orderRequest) {
-        return new ResponseEntity<>(orderService.getAllOrders(orderRequest.userId()), HttpStatus.OK);
+    @GetMapping("/user/{userId}")
+    public ResponseEntity<?> getOrders(@PathVariable String userId) {
+        return new ResponseEntity<>(orderService.getAllOrders(userId), HttpStatus.OK);
     }
 
-    @PostMapping
-    public ResponseEntity<?> createOrder(@RequestBody OrderRequest orderRequest) {
+    @PostMapping("/user/{userId}")
+    public ResponseEntity<?> createOrder(@PathVariable String userId) {
         try {
-            return orderService.createOrder(orderRequest.userId());
+            return orderService.createOrder(userId);
         } catch (Exception e) {
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
+    @PostMapping("/{orderId}/cancel")
+    public ResponseEntity<?> cancelOrder(@PathVariable String orderId) {
+        return orderService.cancelOrder(orderId);
+    }
 }
