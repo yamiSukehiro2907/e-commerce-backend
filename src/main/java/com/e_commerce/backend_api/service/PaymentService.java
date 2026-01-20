@@ -1,16 +1,20 @@
 package com.e_commerce.backend_api.service;
 
+import com.e_commerce.backend_api.dtos.PaymentDto;
 import com.e_commerce.backend_api.dtos.PaymentRequest;
-import com.e_commerce.backend_api.dtos.UpdatePaymentRequest;
+import com.e_commerce.backend_api.dtos.WebHookResponse;
 import com.e_commerce.backend_api.model.Order;
 import com.e_commerce.backend_api.model.Payment;
-import com.e_commerce.backend_api.model.PaymentDto;
 import com.e_commerce.backend_api.repositories.OrderRepository;
 import com.e_commerce.backend_api.repositories.PaymentRepository;
+import com.e_commerce.backend_api.webhook.PaymentMockService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -18,25 +22,29 @@ public class PaymentService {
 
     private final PaymentRepository paymentRepository;
     private final OrderRepository orderRepository;
+    private final PaymentMockService mockService;
 
-    public PaymentDto createPayment(PaymentRequest paymentRequest) {
+    public ResponseEntity<?> createPayment(PaymentRequest paymentRequest) {
         Order order = orderRepository.findById(paymentRequest.orderId());
-        if (order == null) return null;
+        if (order == null) return new ResponseEntity<>(Map.of("message", "Order not found!"), HttpStatus.NOT_FOUND);
         Payment payment = new Payment();
         payment.setOrderId(order.getId());
         payment.setAmount(paymentRequest.amount());
         payment.setStatus("PENDING");
         payment = paymentRepository.createPayment(payment);
-        return new PaymentDto(payment.getPaymentId(), payment.getOrderId(), payment.getAmount(), payment.getStatus(), payment.getTransactionId());
+        PaymentDto dto = new PaymentDto(payment.getPaymentId(), payment.getOrderId(), payment.getAmount(), payment.getStatus(), payment.getTransactionId());
+        return new ResponseEntity<>(dto, HttpStatus.CREATED);
     }
 
-    public PaymentDto updatePaymentStatus(UpdatePaymentRequest updatePaymentRequest) {
-        Payment payment = paymentRepository.findById(updatePaymentRequest.paymentId());
-        if (payment == null) return null;
-        payment.setTransactionId(updatePaymentRequest.transactionId());
-        payment.setStatus(updatePaymentRequest.status());
+    public ResponseEntity<?> processPayment(String paymentId) {
+        Payment payment = paymentRepository.findById(paymentId);
+        if (payment == null) return new ResponseEntity<>(Map.of("message", "Payment not found!"), HttpStatus.NOT_FOUND);
+        WebHookResponse webHookResponse = mockService.updatePaymentStatus();
+        payment.setStatus(webHookResponse.status());
+        payment.setTransactionId(webHookResponse.transactionId());
         payment = paymentRepository.save(payment);
-        return new PaymentDto(payment.getPaymentId(), payment.getOrderId(), payment.getAmount(), payment.getStatus(), payment.getTransactionId());
+        PaymentDto dto = new PaymentDto(payment.getPaymentId(), payment.getOrderId(), payment.getAmount(), payment.getStatus(), payment.getTransactionId());
+        return new ResponseEntity<>(dto, HttpStatus.OK);
     }
 
     public List<PaymentDto> getAllPayments() {

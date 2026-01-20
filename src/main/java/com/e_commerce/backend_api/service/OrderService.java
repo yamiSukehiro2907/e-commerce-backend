@@ -1,11 +1,12 @@
 package com.e_commerce.backend_api.service;
 
+import com.e_commerce.backend_api.dtos.OrderDto;
+import com.e_commerce.backend_api.dtos.OrderItemDto;
 import com.e_commerce.backend_api.model.*;
-import com.e_commerce.backend_api.repositories.CartRepository;
-import com.e_commerce.backend_api.repositories.OrderRepository;
-import com.e_commerce.backend_api.repositories.ProductRepository;
-import com.e_commerce.backend_api.repositories.UserRepository;
+import com.e_commerce.backend_api.repositories.*;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,8 +23,9 @@ public class OrderService {
     private final ProductRepository productRepository;
     private final OrderRepository orderRepository;
     private final CartService cartService;
+    private final OrderItemRepository orderItemRepository;
 
-    public OrderDto createOrder(String userId) {
+    public ResponseEntity<?> createOrder(String userId) {
         User user = userRepository.findById(userId);
         if (user == null) return null;
         List<CartItem> cartItems = cartRepository.findByUserId(userId);
@@ -34,42 +36,60 @@ public class OrderService {
             Product product = productRepository.findById(productId);
             productMap.put(productId, product);
         }
-        List<OrderItemDto> orderItems = new ArrayList<>();
+        List<OrderItem> orderItems = new ArrayList<>();
         double totalAmount = 0.0;
         for (CartItem cartItem : cartItems) {
             Product product = productMap.get(cartItem.getProductId());
-            if (product == null) throw new RuntimeException("Product not found: " + cartItem.getProductId());
-            if (product.getStock() < cartItem.getQuantity())
-                throw new RuntimeException("Insufficient stock for product: " + product.getName());
+            if (product == null)
+                return new ResponseEntity<>(Map.of("message", "Product not found!"), HttpStatus.NOT_FOUND);
+            if (product.getStock() < cartItem.getQuantity()) {
+                return new ResponseEntity<>(Map.of("message", "Product " + product.getName() + " not available!"), HttpStatus.BAD_REQUEST);
+            }
             product.setStock(product.getStock() - cartItem.getQuantity());
             productRepository.save(product);
             double amount = product.getPrice() * cartItem.getQuantity();
             totalAmount += amount;
-            orderItems.add(new OrderItemDto(
-                    cartItem.getProductId(),
-                    cartItem.getQuantity(),
-                    product.getPrice()
-            ));
+            OrderItem orderItem = new OrderItem();
+            orderItem.setProductId(product.getId());
+            orderItem.setQuantity(cartItem.getQuantity());
+            orderItem.setPrice(product.getPrice());
+            orderItems.add(orderItem);
         }
         Order order = new Order();
         order.setUserId(userId);
         order.setTotalAmount(totalAmount);
         order.setStatus("CREATED");
-        order = orderRepository.create(order);
+        Order finalOrder = orderRepository.create(order);
         cartService.deleteCartItems(user.getId());
-        return new OrderDto(
+        orderItems.forEach(orderItem -> orderItem.setOrderId(finalOrder.getId()));
+        List<OrderItemDto> orderItemDto = new ArrayList<>();
+        orderItems.forEach(orderItem -> {
+            orderItemDto.add(new OrderItemDto(orderItem.getProductId(), orderItem.getQuantity(), orderItem.getPrice()));
+            orderItemRepository.save(orderItem);
+        });
+        OrderDto dto = new OrderDto(
                 order.getId(),
                 order.getUserId(),
                 order.getTotalAmount(),
                 order.getStatus(),
-                orderItems
+                orderItemDto
         );
+        return new ResponseEntity<>(dto, HttpStatus.CREATED);
     }
 
     public List<OrderDto> getAllOrders(String userId) {
         User user = userRepository.findById(userId);
-        if (user == null) return null;
+        if (user == null) return new ArrayList<>();
         List<Order> orders = orderRepository.findByUserId(userId);
-        return orders.stream().map(order -> new OrderDto(order.getId(), order.getUserId(), order.getTotalAmount(), order.getStatus(), new ArrayList<>())).toList();
+        return orders.stream().map(order -> new OrderDto(order.getId(), order.getUserId(), order.getTotalAmount(), order.getStatus(),
+                getOrderItems(order)
+        )).toList();
+    }
+
+    private List<OrderItemDto> getOrderItems(Order order) {
+        List<OrderItem> orderItems = orderItemRepository.findByOrderId(order.getId());
+        return orderItems.stream().map(orderItem ->
+                        new OrderItemDto(orderItem.getProductId(), orderItem.getQuantity(), orderItem.getPrice()))
+                .toList();
     }
 }

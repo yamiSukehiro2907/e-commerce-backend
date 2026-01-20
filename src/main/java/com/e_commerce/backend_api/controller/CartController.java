@@ -1,7 +1,6 @@
 package com.e_commerce.backend_api.controller;
 
 import com.e_commerce.backend_api.dtos.ItemRequest;
-import com.e_commerce.backend_api.model.CartItem;
 import com.e_commerce.backend_api.service.CartService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -21,17 +20,15 @@ public class CartController {
     @PostMapping("/add")
     public ResponseEntity<?> addToCart(@RequestBody ItemRequest itemRequest) {
         try {
-            CartItem cartItem = cartService.addToCart(itemRequest);
-            if (cartItem != null) return new ResponseEntity<>(cartItem, HttpStatus.OK);
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            return cartService.addToCart(itemRequest);
         } catch (Exception error) {
-            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>(error.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
     @GetMapping("/{userId}")
     public ResponseEntity<?> getCartItems(@PathVariable String userId) {
-        return new ResponseEntity<>(cartService.findItemsInCart(userId), HttpStatus.OK);
+        return cartService.findItemsInCart(userId);
     }
 
     @DeleteMapping("/{userId}")

@@ -1,4 +1,4 @@
-package com.e_commerce.backend_api.model;
+package com.e_commerce.backend_api.dtos;
 
 public record PaymentDto(
         String paymentId,

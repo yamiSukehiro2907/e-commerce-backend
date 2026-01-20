@@ -1,8 +1,7 @@
 package com.e_commerce.backend_api.controller;
 
 import com.e_commerce.backend_api.dtos.PaymentRequest;
-import com.e_commerce.backend_api.dtos.UpdatePaymentRequest;
-import com.e_commerce.backend_api.model.PaymentDto;
+import com.e_commerce.backend_api.dtos.PaymentDto;
 import com.e_commerce.backend_api.service.PaymentService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -23,15 +22,11 @@ public class PaymentController {
 
     @PostMapping("/create")
     public ResponseEntity<?> createPayment(@RequestBody PaymentRequest paymentRequest) {
-        PaymentDto paymentDto = paymentService.createPayment(paymentRequest);
-        if (paymentDto == null) return ResponseEntity.badRequest().body("Payment not created");
-        return new ResponseEntity<>(paymentDto, HttpStatus.CREATED);
+        return paymentService.createPayment(paymentRequest);
     }
 
-    @PostMapping("/update")
-    public ResponseEntity<?> updatePayment(@RequestBody UpdatePaymentRequest updatePaymentRequest) {
-        PaymentDto paymentDto = paymentService.updatePaymentStatus(updatePaymentRequest);
-        if (paymentDto == null) return ResponseEntity.badRequest().body("Payment not updated");
-        return new ResponseEntity<>(paymentDto, HttpStatus.OK);
+    @PostMapping("/pay/{paymentId}")
+    public ResponseEntity<?> updatePayment(@PathVariable String paymentId) {
+        return paymentService.processPayment(paymentId);
     }
 }
